@@ -2519,7 +2519,7 @@ document.addEventListener("click",e=>{
   const iox=e.target.closest("[data-infoopen]");if(iox){openInfo(iox.dataset.infoopen);return}
   const evx=e.target.closest("[data-editev]");if(evx){e.preventDefault();editEvent(evx.dataset.editev);return}
   const t=e.target.closest("button,[data-v],input,img");if(!t)return;const d=t.dataset;
-  if(d.ref){e.preventDefault();goRef(d.ref,S.view==="refs"?"refs":"read");return}
+  if(d.ref){e.preventDefault();if(!["read","refs","search","plano","home"].includes(S.view)){const pr=parseRef(d.ref);if(pr&&pr.v&&S.text){versePopup(pr.b,pr.c,pr.v,pr.v2);return}}goRef(d.ref,S.view==="refs"?"refs":"read");return}
   if(t.id==="moreBtn"){openSheet();return}
   if(d.mbook!=null){S.mbook=d.mbook===""?null:+d.mbook;render();window.scrollTo(0,0);return}
   if(d.goc){go(S.mbook,+d.goc,0,"read");return}

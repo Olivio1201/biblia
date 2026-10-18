@@ -1878,7 +1878,7 @@ let _sg=null,_sgk=null;
 function simbGroups(){const k=SIMBX?SIMBX.length:0;if(_sg&&_sgk===k)return _sg;
   const map=new Map();const add=(g,r)=>{g=SMAP[g]||g;if(!map.has(g))map.set(g,[]);map.get(g).push(r)};
   SIMB.forEach(([g,it])=>it.forEach(x=>{const r=[x[0],x[1]];r.g=g;add(g,r)}));
-  (SIMBX||[]).forEach(([g,it])=>it.forEach(x=>{const r=[x[0],x[1]];r.refs=x[2]||[];r.src=x[3]||"c";r.g=SMAP[g]||g;add(g,r)}));
+  [].forEach(([g,it])=>it.forEach(x=>{const r=[x[0],x[1]];r.refs=x[2]||[];r.src=x[3]||"c";r.g=SMAP[g]||g;add(g,r)}));
   const nk=s=>norm(s).replace(/^(\d+).*/,m=>m.padStart(6,"0"));
   _sg=[...map.entries()].sort((a,b)=>SORDER.indexOf(a[0])-SORDER.indexOf(b[0])).map(([g,it])=>[g,g==="DIA ETERNO"?it:it.slice().sort((a,b)=>/^\d/.test(a[0])&&/^\d/.test(b[0])?parseInt(a[0])-parseInt(b[0]):nk(a[0]).localeCompare(nk(b[0])))]);_sgk=k;return _sg}
 async function importSimbx(f){try{const d=JSON.parse(await f.text());const arr=Array.isArray(d)?d:d.simbx;if(!Array.isArray(arr)||!arr.length||!Array.isArray(arr[0][1]))throw 0;
@@ -1888,7 +1888,7 @@ function vSimb(){
   if(!S.sb||!S.sb.startsWith("s:")||+S.sb.slice(2)>=SG.length)S.sb="s:0";const q=(S.sq||"").trim();
   const total=SG.reduce((a,c)=>a+c[1].length,0);
   const nav=`<div class="snav"><div class="eyebrow" style="margin-top:0">Grupos</div>${SG.map((c,i)=>`<button data-sb="s:${i}" class="${S.sb==="s:"+i&&!q?"on":""}">${pcase(c[0])}<span>${c[1].length}</span></button>`).join("")}
-    ${SIMBX||window.SIMBX?"":`<div class="eyebrow">Mais símbolos</div><button id="simbxPick">⇪ Carregar símbolos adicionais</button>`}</div>`;
+    </div>`;
   let body;
   if(q){
     const nq=norm(q);const rows=[];SG.forEach(c=>c[1].forEach(r=>{if(norm(r[0]+" "+r[1]).includes(nq))rows.push(r)}));
@@ -1897,7 +1897,7 @@ function vSimb(){
     body=`${top.map(r=>`<div class="answer"><span class="eyebrow" style="margin:0">${pcase(r.g)}${r.src==="c"?" · Símbolos e Tipos Bíblicos":""}</span><div class="aw">${pcase(r[0])}</div><div class="am">${symMean(r)}</div>${symRefs(r)}</div>`).join("")}
       ${rest.length?`<h2 class="sh">${top.length?"Outras ocorrências":"Resultados para “"+esc(q)+"”"}</h2>${symTable(rest,1)}`:""}${!rows.length?`<p class="empty">Nenhum símbolo com “${esc(q)}”. Tente outra palavra ou parte dela.</p>`:""}`;
   }else{const c=SG[+S.sb.slice(2)];body=`<h2 class="sh">${pcase(c[0])}</h2>${c[0]==="DIA ETERNO"?`<p class="empty">As horas do dia como figura das dispensações, da madrugada à aurora.</p>`:""}${symTable(c[1])}`}
-  return `<h1 class="h">Simbologia</h1><p class="sub">${total} símbolos bíblicos e seus significados${SIMBX?` · <span class="stag">ST</span> = do arquivo Símbolos e Tipos Bíblicos, com as referências`:""}</p>
+  return `<h1 class="h">Simbologia</h1><p class="sub">${total} símbolos bíblicos e seus significados</p>
   <label for="simbQ" style="display:block;font-weight:600;margin-bottom:6px">Consultar símbolo</label>
   <div class="row" style="margin-bottom:14px"><input id="simbQ" value="${esc(S.sq||"")}" placeholder="Digite o símbolo: pomba, óleo, 40, vermelho, Arão…" class="qin">${q?`<button class="btn small" id="simbClear">Limpar</button>`:""}</div>
   <div class="simb">${nav}<div class="scontent">${body}</div></div>`;

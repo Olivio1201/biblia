@@ -293,6 +293,12 @@ tr.me td{background:var(--accent-soft)}
 .syncb{font-size:12px;font-weight:600;color:var(--muted)}
 /* Janela do versículo */
 .vp-head{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.estf .aula,.estf .aula *,.estf .editor textarea,.estf .editor input,.estf .sh{font-family:"Arial Nova",Arial,Helvetica,sans-serif!important;font-style:normal!important}
+.estf .aula{font-size:11pt!important;line-height:1.55}
+.estf .aula :not(h1,h2,h3,h4,h5,h6,sup,sub,.ttl,.ttl *){font-size:inherit!important}
+.estf .editor textarea{font-size:11pt!important}
+.estf .aula :is(h1,h2,h3,h4,h5,h6),.estf .aula .ttl,.estf .sh{font-size:12pt!important;font-weight:700!important;text-decoration:underline!important;text-underline-offset:3px}
+.estf .aula :is(h1,h2,h3,h4,h5,h6) *,.estf .aula .ttl *{font-size:inherit!important}
 .vp-text{font-size:calc(var(--fs) + 1px);max-width:none;padding:6px 2px}
 .vp-text .v{cursor:default}
 .vp-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
@@ -988,7 +994,7 @@ function vEstudos(){
   }
   return `<h1 class="h">Estudos</h1><p class="sub">Estudos prontos, seus estudos, slides para projeção, anotações e temas</p>
   <div class="esearch"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="eq" class="qin" type="text" enterkeyhint="search" value="${esc(S.eq||"")}" placeholder="Buscar em todos os estudos, slides e anotações…" autocomplete="off">${S.eq?`<button class="btn small" id="eqX" aria-label="Limpar busca">✕</button>`:""}</div>
-  <div class="subtabs">${tabs.map(([k,l])=>`<button data-stab="${k}" class="${S.stab===k&&eq.length<2?"on":""}">${l}<span class="tcount">${cnt[k]}</span></button>`).join("")}</div>${body}`;
+  <div class="subtabs">${tabs.map(([k,l])=>`<button data-stab="${k}" class="${S.stab===k&&eq.length<2?"on":""}">${l}<span class="tcount">${cnt[k]}</span></button>`).join("")}</div><div class="estf">${body}</div>`;
 }
 function planDays(){const all=[];B.forEach((b,i)=>{for(let c=1;c<=b[2];c++)all.push([i,c])});const d=[];for(let i=0;i<365;i++)d.push(all.slice(Math.floor(i*all.length/365),Math.floor((i+1)*all.length/365)));return d}
 
@@ -2474,6 +2480,7 @@ function render(){setTimeout(()=>syncBadge(SY.state),0);if(RO&&["agenda","plano"
   $("#view").innerHTML=v;
   if(S.view==="estudos"&&S.stab==="prontos")linkRefs($("#aulaBody"));
   if(S.view==="estudos"&&$("#impBody"))linkRefs($("#impBody"));
+  if(S.view==="estudos")document.querySelectorAll(".estf .aula>p").forEach(p=>{const t=p.textContent.trim();if(!t||t.length>90)return;const ns=[...p.childNodes].filter(n=>!(n.nodeType===3&&!n.textContent.trim()));if(ns.length&&ns.every(n=>n.nodeType===1&&/^(B|STRONG)$/.test(n.tagName)))p.classList.add("ttl")});
   if(S.view==="estudos"&&S.stab==="slides")setTimeout(drawPdfThumbs,0);
   if(S.view==="info"||S.view==="mapas")setTimeout(infoThumbs,0);
   if(S.view==="mapas"&&$("#mapint"))MAPINT.mount($("#mapint"));

@@ -2307,18 +2307,20 @@ function estProntos(){
   const L=allProntos();
   if(!L.length)return `<div class="callout"><p>Nenhuma mensagem ainda. Use <b>Importar Word / PDF</b> em Estudos e escolha <b>Mensagem</b>.</p></div>`;
   if(!S.es||!L.find(e=>e.id===S.es.split(":")[0]))S.es=L[0].id+":0";
-  const[eid,si]=S.es.split(":");const st=L.find(e=>e.id===eid);const i=Math.min(+si||0,st.secs.length-1);const sec=st.secs[i];
+  const[eid,si]=S.es.split(":");const st=L.find(e=>e.id===eid);const i=Math.min(+si||0,st.secs.length-1);
   const nfotos=st.folder?allImgs().filter(x=>x.folder===st.folder).length:0;
-  const nav=`<div class="snav">${L.map(e=>`<div class="eyebrow" style="margin-top:${e===L[0]?0:14}px">${esc(e.t)}</div>${e.secs.map((s,k)=>`<button data-es="${e.id}:${k}" class="${e.id===st.id&&k===i?"on":""}"><span class="an">${k+1}</span><b style="font-weight:inherit;flex:1">${esc(s.t)}</b></button>`).join("")}`).join("")}
+  const nav=`<div class="snav"><div class="eyebrow" style="margin-top:0">Mensagens</div>${L.map((e,k)=>`<button data-es="${e.id}:0" class="${e.id===st.id?"on":""}"><span class="an">${k+1}</span><b style="font-weight:inherit;flex:1">${esc(e.t)}</b></button>`).join("")}
     ${st.folder&&nfotos?`<button class="fchip" style="margin-top:12px" data-gofolder="${esc(st.folder)}"><svg viewBox="0 0 20 16" aria-hidden="true"><path d="M1 3a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2z" fill="currentColor"/></svg>Fotos: ${esc(st.folder)}<span>${nfotos}</span></button>`:""}</div>`;
-  let pics=(sec.imgs||[]).map(tabByKey).filter(Boolean);
-  if(!pics.length&&st.user&&st.folder&&i===0)pics=allImgs().filter(x=>x.folder===st.folder).slice(0,4);
+  let pics=st.secs.flatMap(s=>(s.imgs||[]).map(tabByKey).filter(Boolean)).slice(0,3);
+  if(!pics.length&&st.folder)pics=allImgs().filter(x=>x.folder===st.folder).slice(0,3);
   const tools=st.user?`<div class="row" style="margin:-4px 0 12px;gap:6px"><span class="empty" style="font-size:12px">Importado de ${esc(st.src||"arquivo")}</span><span style="flex:1"></span>
-    <button class="btn small primary" id="prTxt">✎ Editar texto</button><button class="btn small" id="prRen">✎ Renomear</button><button class="btn small" id="prEdit">Editar partes</button><button class="btn small" id="prToMine">Mover para Estudos</button><button class="btn small" id="prDel">Excluir</button></div>`:`<div class="row" style="margin:-4px 0 12px;gap:6px"><span style="flex:1"></span><button class="btn small primary" id="prTxt">✎ Editar texto</button></div>`;
-  const body=`<div class="eyebrow" style="margin-top:0">${esc(st.t)} · parte ${i+1} de ${st.secs.length}</div><h2 class="sh" style="font-size:26px">${esc(sec.t)}</h2>${tools}
+    <button class="btn small primary" id="prTxt">✎ Editar texto</button><button class="btn small" id="prRen">✎ Renomear</button><button class="btn small" id="prToMine">Mover para Estudos</button><button class="btn small" id="prDel">Excluir</button></div>`:`<div class="row" style="margin:-4px 0 12px;gap:6px"><span style="flex:1"></span><button class="btn small primary" id="prTxt">✎ Editar texto</button></div>`;
+  const one=st.secs.length===1;
+  const doc=st.secs.map(s=>(one?"":`<h4 data-part="1">${esc(s.t)}</h4>`)+s.h).join("");
+  if(i>0)setTimeout(()=>{const h=document.querySelectorAll("#aulaBody h4[data-part]")[i];if(h)h.scrollIntoView({block:"start",behavior:"smooth"})},60);
+  const body=`<div class="eyebrow" style="margin-top:0">Mensagem</div><h2 class="sh" style="font-size:26px">${esc(st.t)}</h2>${tools}
     ${pics.length?`<div class="estrip">${pics.map(p=>`<figure><img src="${p.data}" alt="${esc(p.caption)}" data-viewimg="${p.id}"><figcaption>${esc(p.caption)}</figcaption></figure>`).join("")}${nfotos?`<button class="estall" data-gofolder="${esc(st.folder)}">Ver todas as ${nfotos} fotos da pasta ${esc(st.folder)} ›</button>`:""}</div>`:""}
-    <article class="doc aula" id="aulaBody">${sec.h}</article>
-    <div class="row" style="justify-content:space-between;margin-top:24px;border-top:1px solid var(--line);padding-top:12px">${i>0?`<button class="btn small" data-es="${st.id}:${i-1}">‹ ${esc(st.secs[i-1].t)}</button>`:"<span></span>"}${i<st.secs.length-1?`<button class="btn small" data-es="${st.id}:${i+1}">${esc(st.secs[i+1].t)} ›</button>`:""}</div>`;
+    <article class="doc aula" id="aulaBody">${doc}</article>`;
   return `<div class="simb">${nav}<div class="scontent">${body}</div></div>`;
 }
 // ---------- Editor de texto dos estudos
@@ -2327,7 +2329,7 @@ function richEdit(art,html,titleVal,onSave){
   const bar=document.createElement("div");bar.className="rtbar";
   const B=[["bold","<b>N</b>","Negrito"],["italic","<i>I</i>","Itálico"],["underline","<u>S</u>","Sublinhado"],["h3","Título","Subtítulo"],["p","Texto","Texto normal"],
     ["insertUnorderedList","• Lista","Lista"],["insertOrderedList","1. Lista","Lista numerada"],["justifyLeft","⇤","Alinhar à esquerda"],["justifyCenter","↔","Centralizar"],["justifyFull","☰","Justificar"],["removeFormat","Limpar","Tirar formatação"],["undo","↶","Desfazer"],["redo","↷","Refazer"]];
-  bar.innerHTML=(titleVal!=null?`<input id="rtTitle" value="${esc(titleVal)}" placeholder="Título da parte">`:"")+
+  bar.innerHTML=(titleVal!=null?`<input id="rtTitle" value="${esc(titleVal)}" placeholder="Título">`:"")+
     `<div class="rtb">${B.map(([c,l,t])=>`<button type="button" class="btn small" data-rc="${c}" title="${t}">${l}</button>`).join("")}<span style="flex:1"></span>
     <button type="button" class="btn small" id="rtCancel">Cancelar</button><button type="button" class="btn small primary" id="rtSave">Salvar</button></div>`;
   art.before(bar);
@@ -2342,14 +2344,14 @@ function richEdit(art,html,titleVal,onSave){
   art.focus();bar.scrollIntoView({block:"nearest"});
 }
 function editPronto(){
-  const[eid,si]=(S.es||"").split(":");const i=+si||0;let p=curPronto(),isNew=false;
+  const[eid]=(S.es||"").split(":");let p=curPronto(),isNew=false;
   if(!p){const e=ESTUDOS.find(x=>x.id===eid);if(!e)return;isNew=true;
-    p={id:"u-"+e.id,t:e.t,folder:e.folder||"",src:"Estudo pronto do app",date:todayISO(),user:true,cutsEdited:true,secs:e.secs.map(s=>({t:s.t,h:s.h,imgs:s.imgs||[]}))}}
-  const sec=p.secs[i];if(!sec)return;
-  richEdit($("#aulaBody"),sec.h,sec.t,(h,t)=>{p.secs[i]={...sec,t:t||sec.t,h};
-    p.html=p.secs.map(s=>`<h4 data-part="1">${esc(s.t)}</h4>`+s.h).join("");
-    const{kids}=splitCands(p.html);p.cuts=kids.map((el,k)=>el.hasAttribute("data-part")?k:-1).filter(k=>k>=0);p.cutsEdited=true;delete p.markers;
-    if(isNew)S.prontos.push(p);saveProntos();S.es=p.id+":"+i;render()});
+    p={id:"u-"+e.id,t:e.t,folder:e.folder||"",src:"Mensagem do app",date:todayISO(),user:true,cutsEdited:true,secs:e.secs.map(s=>({t:s.t,h:s.h,imgs:s.imgs||[]}))}}
+  const one=p.secs.length===1;const doc=p.secs.map(s=>(one?"":`<h4 data-part="1">${esc(s.t)}</h4>`)+s.h).join("");
+  richEdit($("#aulaBody"),doc,p.t,(h,t)=>{if(t)p.t=t;p.html=h;
+    const{kids}=splitCands(h);p.cuts=kids.map((el,k)=>el.hasAttribute&&el.hasAttribute("data-part")?k:-1).filter(k=>k>=0);p.cutsEdited=true;delete p.markers;
+    const old=p.secs;p.secs=buildSecs(kids,p.cuts,p.t,false);p.secs.forEach((s,k)=>{const o=old.find(x=>x.t===s.t);if(o&&o.imgs)s.imgs=o.imgs});
+    if(isNew)S.prontos.push(p);saveProntos();S.es=p.id+":0";render()});
 }
 function editImp(){const x=S.imp.find(i=>i.id===S.curImp);if(!x)return;
   richEdit($("#impBody"),x.html,null,h=>{x.html=h;dbPut("imported",S.imp);render()})}

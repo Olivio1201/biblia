@@ -1001,7 +1001,7 @@ function vEstudos(){
   else if(S.stab==="estudos"){
     const cur=S.studies.find(x=>x.id===S.cur);const ci=S.curImp!=null?S.imp.find(x=>x.id===S.curImp):null;
     const sq=norm(S.stq||"");
-    const all=[...S.studies.map(x=>({...x,_t:"s"})),...S.imp.map(x=>({...x,_t:"i"}))].filter(x=>!sq||norm((x.title||"")+" "+(x.ref||"")).includes(sq)||(x._t==="i"&&norm(plain(x.html)).includes(sq))||(x._t==="s"&&norm(x.body||"").includes(sq))).sort((a,b)=>b.date.localeCompare(a.date));
+    const all=[...S.studies.map(x=>({...x,_t:"s"})),...S.imp.map(x=>({...x,_t:"i"}))].filter(x=>!sq||norm((x.title||"")+" "+(x.ref||"")).includes(sq)||(x._t==="i"&&norm(plain(x.html)).includes(sq))||(x._t==="s"&&norm(x.body||"").includes(sq))).sort((a,b)=>ABC.compare(a.title||"",b.title||""));
     body=`<div class="split"><div><button class="btn primary" id="newStudy" style="width:100%;margin-bottom:6px">+ Novo estudo</button>
       <button class="btn" id="impStudy" style="width:100%;margin-bottom:8px">⇪ Importar Word / PDF / PowerPoint</button>
       ${S.studies.length+S.imp.length>3?`<input id="stq" class="qin" style="width:100%;margin-bottom:6px" value="${esc(S.stq||"")}" placeholder="Buscar nos estudos…">`:""}
@@ -2298,7 +2298,8 @@ function impReader(x){
 // ---------- Estudos prontos criados pelo usuário
 S.prontos=[];
 const hidEst=()=>new Set(ls.get("ba_hidest",[])||[]);
-const allProntos=()=>{const ov=new Set(ESTUDOS.map(e=>"u-"+e.id)),hd=hidEst();return[...ESTUDOS.filter(e=>!hd.has(e.id)).map(e=>S.prontos.find(p=>p.id==="u-"+e.id)||e),...S.prontos.filter(p=>!ov.has(p.id))]};
+const ABC=new Intl.Collator("pt-BR",{sensitivity:"base",numeric:true});
+const allProntos=()=>{const ov=new Set(ESTUDOS.map(e=>"u-"+e.id)),hd=hidEst();return[...ESTUDOS.filter(e=>!hd.has(e.id)).map(e=>S.prontos.find(p=>p.id==="u-"+e.id)||e),...S.prontos.filter(p=>!ov.has(p.id))].sort((a,b)=>ABC.compare(a.t||"",b.t||""))};
 function nice(t){t=t.replace(/\s+/g," ").trim();if(t===t.toUpperCase()&&/\p{L}/u.test(t)){t=t.toLocaleLowerCase("pt-BR");t=t.charAt(0).toLocaleUpperCase("pt-BR")+t.slice(1);
   ["Deus","Jesus","Cristo","Espírito Santo","Senhor","Israel","Tabernáculo"].forEach(p=>{t=t.replace(new RegExp("(^|[^\\p{L}])"+p.toLocaleLowerCase("pt-BR")+"(?![\\p{L}])","giu"),(m,a)=>a+p)})}
   return t.replace(/^[\d.\-–\s]+(?=\p{L})/u,m=>m.trim()?m:"").slice(0,90)}

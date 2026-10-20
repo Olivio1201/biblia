@@ -122,7 +122,7 @@ h1.h{font-size:22px;font-weight:600;color:var(--accent);margin:0 0 2px;text-wrap
 /* Estudos */
 .subtabs{display:flex;gap:4px;border-bottom:1px solid var(--line);margin-bottom:14px;overflow-x:auto}
 .subtabs button{border:1px solid transparent;border-bottom:0;background:none;padding:8px 14px;border-radius:6px 6px 0 0;font-weight:600;color:var(--muted);white-space:nowrap}
-body.ro #prTxt,body.ro #impTxt,body.ro .sact,body.ro #symRestore,body.ro #impStudy,body.ro #newStudy,body.ro #impSave,body.ro #impToPronto,body.ro #impDel,body.ro #prRen,body.ro #prEdit,body.ro #prToMine,body.ro #prDel,body.ro #slRen,body.ro #slDel,
+body.ro #prHide,body.ro #prTxt,body.ro #impTxt,body.ro .sact,body.ro #symRestore,body.ro #impStudy,body.ro #newStudy,body.ro #impSave,body.ro #impToPronto,body.ro #impDel,body.ro #prRen,body.ro #prEdit,body.ro #prToMine,body.ro #prDel,body.ro #slRen,body.ro #slDel,
 body.ro #addInfo,body.ro #infoDrop,body.ro #ifOrd,body.ro [data-infoedit],body.ro [data-infodel],body.ro #addImg,body.ro #imgDrop,body.ro #newFolder,body.ro #renFolder,body.ro [data-editimg],body.ro [data-delimg],
 body.ro [data-act="load"],body.ro [data-view="agenda"],body.ro [data-view="plano"],body.ro [data-stab="notas"],body.ro #expAll,body.ro #impAll,body.ro #impAll2,body.ro #exp,body.ro #imp,
 body.ro #simbxPick,body.ro #aulasPick,body.ro #aulasPick2,body.ro #saveStudy,body.ro #delStudy,body.ro .ivedit,body.ro #iview [data-iv="ed"],body.ro #bar{display:none!important}
@@ -2297,7 +2297,8 @@ function impReader(x){
 
 // ---------- Estudos prontos criados pelo usuário
 S.prontos=[];
-const allProntos=()=>{const ov=new Set(ESTUDOS.map(e=>"u-"+e.id));return[...ESTUDOS.map(e=>S.prontos.find(p=>p.id==="u-"+e.id)||e),...S.prontos.filter(p=>!ov.has(p.id))]};
+const hidEst=()=>new Set(ls.get("ba_hidest",[])||[]);
+const allProntos=()=>{const ov=new Set(ESTUDOS.map(e=>"u-"+e.id)),hd=hidEst();return[...ESTUDOS.filter(e=>!hd.has(e.id)).map(e=>S.prontos.find(p=>p.id==="u-"+e.id)||e),...S.prontos.filter(p=>!ov.has(p.id))]};
 function nice(t){t=t.replace(/\s+/g," ").trim();if(t===t.toUpperCase()&&/\p{L}/u.test(t)){t=t.toLocaleLowerCase("pt-BR");t=t.charAt(0).toLocaleUpperCase("pt-BR")+t.slice(1);
   ["Deus","Jesus","Cristo","Espírito Santo","Senhor","Israel","Tabernáculo"].forEach(p=>{t=t.replace(new RegExp("(^|[^\\p{L}])"+p.toLocaleLowerCase("pt-BR")+"(?![\\p{L}])","giu"),(m,a)=>a+p)})}
   return t.replace(/^[\d.\-–\s]+(?=\p{L})/u,m=>m.trim()?m:"").slice(0,90)}
@@ -2345,7 +2346,7 @@ function estProntos(){
   let pics=st.secs.flatMap(s=>(s.imgs||[]).map(tabByKey).filter(Boolean)).slice(0,3);
   if(!pics.length&&st.folder)pics=allImgs().filter(x=>x.folder===st.folder).slice(0,3);
   const tools=st.user?`<div class="row" style="margin:-4px 0 12px;gap:6px"><span class="empty" style="font-size:12px">Importado de ${esc(st.src||"arquivo")}</span><span style="flex:1"></span>
-    <button class="btn small primary" id="prTxt">✎ Editar texto</button><button class="btn small" id="prRen">✎ Renomear</button><button class="btn small" id="prToMine">Mover para Estudos</button><button class="btn small" id="prDel">Excluir</button></div>`:`<div class="row" style="margin:-4px 0 12px;gap:6px"><span style="flex:1"></span><button class="btn small primary" id="prTxt">✎ Editar texto</button></div>`;
+    <button class="btn small primary" id="prTxt">✎ Editar texto</button><button class="btn small" id="prRen">✎ Renomear</button><button class="btn small" id="prToMine">Mover para Estudos</button><button class="btn small" id="prDel">Excluir</button></div>`:`<div class="row" style="margin:-4px 0 12px;gap:6px"><span style="flex:1"></span><button class="btn small primary" id="prTxt">✎ Editar texto</button><button class="btn small" id="prHide">Excluir</button></div>`;
   const one=st.secs.length===1;
   const doc=st.secs.map(s=>(one?"":`<h4 data-part="1">${esc(s.t)}</h4>`)+s.h).join("");
   if(i>0)setTimeout(()=>{const h=document.querySelectorAll("#aulaBody h4[data-part]")[i];if(h)h.scrollIntoView({block:"start",behavior:"smooth"})},60);
@@ -2534,7 +2535,7 @@ const COLS={
 };
 function dataUrlBlob(u){const[h,b]=u.split(",");const mime=(h.match(/data:([^;]+)/)||[,"image/jpeg"])[1];const bin=atob(b);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return new Blob([a],{type:mime})}
 const privDoc=()=>({plan:S.plan,events:S.events});
-const stateDoc=()=>({folders:ls.get("ba_folders",[]),symEd:ls.get("ba_symed",{})||{},textAsset:SY.textId?{id:SY.textId,name:S.textName||""}:null,aulasAsset:SY.aulasId||null,simbxAsset:SY.simbxId||null});
+const stateDoc=()=>({folders:ls.get("ba_folders",[]),symEd:ls.get("ba_symed",{})||{},hideEst:ls.get("ba_hidest",[])||[],textAsset:SY.textId?{id:SY.textId,name:S.textName||""}:null,aulasAsset:SY.aulasId||null,simbxAsset:SY.simbxId||null});
 function bookMarks(b){const o={};for(const k in S.marks)if(k.startsWith(b+"."))o[k]=S.marks[k];return o}
 // marca o que mudou e envia em lote
 function syncQueue(name){if(!SY.db||SY.applying||RO)return;SY.q.add(name);clearTimeout(SY.t);SY.t=setTimeout(syncFlush,800)}
@@ -2564,16 +2565,24 @@ async function pushOne(n){
   SY.last[n]=cur;
 }
 // recebe mudanças feitas no outro aparelho
-async function pullCol(n,snap){const C=COLS[n];const remote={};snap.docs.forEach(d=>remote[d.id]=JSON.parse(JSON.stringify(d.data())));
+// itens excluídos neste aparelho: não deixa a nuvem trazê-los de volta antes de apagar lá
+SY.ids={};
+const delGet=n=>(ls.get("ba_del",{})||{})[n]||{};
+function delSet(n,o){const D=ls.get("ba_del",{})||{};if(Object.keys(o).length)D[n]=o;else delete D[n];ls.set("ba_del",D)}
+function delTrack(n,list){const now=new Set((list||[]).map(x=>sid(x.id)));const prev=SY.ids[n];
+  if(prev){const o=delGet(n);let ch=false;for(const id of prev)if(!now.has(id)){o[id]=Date.now();ch=true}if(ch)delSet(n,o)}SY.ids[n]=now}
+function delFilter(n,remote){const o=delGet(n);const gone={};let ch=false;
+  for(const id in o){if(remote[id]){gone[id]=JSON.stringify(remote[id]);delete remote[id]}else{delete o[id];ch=true}}if(ch)delSet(n,o);return gone}
+async function pullCol(n,snap){const C=COLS[n];const remote={};snap.docs.forEach(d=>remote[d.id]=JSON.parse(JSON.stringify(d.data())));const gone=delFilter(n,remote);
   const first=!SY.seen[n];SY.seen[n]=true;
   const local=C.get();const byId={};local.forEach(x=>byId[sid(x.id)]=x);const out=[];let fetched=false;
   for(const id in remote){const d=remote[id];const l=byId[id];
     if(l&&l._a===d.asset){out.push({...l,...C.meta({...l,...d}),_a:d.asset})}
     else{try{const r=await fetch("/_blob/"+d.asset);if(!r.ok)throw 0;const it=await C.restore(d,r);it._a=d.asset;delete it.asset;out.push(it);fetched=true}catch(e){if(l)out.push(l)}}}
   for(const x of local)if(!x._a&&!remote[sid(x.id)])out.push(x);
-  SY.last[n]={};for(const id in remote)SY.last[n][id]=JSON.stringify(remote[id]);
+  SY.last[n]={};for(const id in remote)SY.last[n][id]=JSON.stringify(remote[id]);Object.assign(SY.last[n],gone);
   const before=JSON.stringify(local.map(x=>[x.id,x._a,C.meta(x)]));const after=JSON.stringify(out.map(x=>[x.id,x._a,C.meta(x)]));
-  C.set(out);if(before!==after||fetched){SY.applying=true;await dbPut(C.idb,out.map(({_pdf,...y})=>y));SY.applying=false;syncRender()}
+  C.set(out);SY.ids[n]=new Set(out.map(x=>sid(x.id)));if(Object.keys(gone).length)syncQueue(n);if(before!==after||fetched){SY.applying=true;await dbPut(C.idb,out.map(({_pdf,...y})=>y));SY.applying=false;syncRender()}
   if(out.some(x=>!x._a))syncQueue(n);
 }
 async function initSync(){
@@ -2582,12 +2591,13 @@ async function initSync(){
     try{const u=await window.claude.use("user");RO=u?!(await u.isOwner()):false}catch(e){RO=false}
     if(RO){document.body.classList.add("ro");S.marks={};S.plan={start:null,done:{}};S.events=[];if(["agenda","plano"].includes(S.view))S.view="home";if(S.stab==="notas")S.stab="prontos";render()}
     else SY.as=await window.claude.use("assets");
+    for(const n of Object.keys(COLS))SY.ids[n]=new Set(COLS[n].get().map(x=>sid(x.id)));SY.ids.studies=new Set(S.studies.map(x=>sid(x.id)));
     syncBadge("syncing");
     // estado geral: plano, agenda, pastas, texto bíblico, aulas
     db.doc("app/state").onSnapshot(async snap=>{
       if(!snap.exists){if(!SY.seen.state){SY.seen.state=true;syncQueue("state");if(S.text&&S.custom&&!SY.textId)syncQueue("text");if(S.aulas&&S.aulas.length&&!SY.aulasId)syncQueue("aulas");if(S.simbx&&S.simbx.length&&!SY.simbxId)syncQueue("simbx")}return}
       SY.seen.state=true;const d=JSON.parse(JSON.stringify(snap.data()));SY.last.state=JSON.stringify(d);
-      SY.applying=true;if(!SY.q.has("state")){if(d.folders)ls.set("ba_folders",d.folders);if(d.symEd){ls.set("ba_symed",d.symEd);_sg=null}}SY.applying=false;
+      SY.applying=true;if(!SY.q.has("state")){if(d.folders)ls.set("ba_folders",d.folders);if(d.symEd){ls.set("ba_symed",d.symEd);_sg=null}if(d.hideEst)ls.set("ba_hidest",d.hideEst)}SY.applying=false;
       if(!RO&&(d.plan||d.events)){if(!SY.seen.priv){SY.applying=true;if(d.plan)S.plan=d.plan,ls.set("ba_plan",S.plan);if(d.events)S.events=d.events,ls.set("ba_events",S.events);SY.applying=false}syncQueue("priv");SY.last.state="";syncQueue("state")}
       if(d.textAsset&&d.textAsset.id!==SY.textId){try{toast("Baixando o texto bíblico…",30000);const t=await (await fetch("/_blob/"+d.textAsset.id)).json();S.text=t;S.custom=true;S.index=null;S.textName=d.textAsset.name;SY.textId=d.textAsset.id;ls.set("ba_textid",SY.textId);SY.applying=true;await dbPut("text",t);SY.applying=false;$("#toast").hidden=true}catch(e){}}
       else if(!d.textAsset&&S.text&&S.custom)syncQueue("text");
@@ -2604,18 +2614,18 @@ async function initSync(){
         for(const k in S.marks)if(k.startsWith(b+"."))delete S.marks[k];Object.assign(S.marks,m)});
       if(!first)for(const k in S.marks){const b=+k.split(".")[0];if(!rb.has(b))delete S.marks[k]}
       SY.applying=true;saveMarks();SY.applying=false;if(first)syncQueue("marks");syncRender()},()=>syncBadge("error"));
-    db.collection("studies").onSnapshot(snap=>{SY.seen.studies=true;const remote={};snap.docs.forEach(d=>remote[d.id]=JSON.parse(JSON.stringify(d.data())));
+    db.collection("studies").onSnapshot(snap=>{SY.seen.studies=true;const remote={};snap.docs.forEach(d=>remote[d.id]=JSON.parse(JSON.stringify(d.data())));const gone=delFilter("studies",remote);
       const out=Object.values(remote);for(const x of S.studies)if(!x._s&&!remote[sid(x.id)])out.push(x);
-      SY.last.studies={};for(const id in remote)SY.last.studies[id]=JSON.stringify(remote[id]);
-      S.studies=out;SY.applying=true;ls.set("ba_studies",S.studies);SY.applying=false;if(out.some(x=>!x._s))syncQueue("studies");syncRender()},()=>syncBadge("error"));
+      SY.last.studies={};for(const id in remote)SY.last.studies[id]=JSON.stringify(remote[id]);Object.assign(SY.last.studies,gone);if(Object.keys(gone).length)syncQueue("studies");
+      S.studies=out;SY.ids.studies=new Set(out.map(x=>sid(x.id)));SY.applying=true;ls.set("ba_studies",S.studies);SY.applying=false;if(out.some(x=>!x._s))syncQueue("studies");syncRender()},()=>syncBadge("error"));
     for(const n of Object.keys(COLS))db.collection(n).onSnapshot(snap=>pullCol(n,snap),()=>syncBadge("error"));
   }catch(e){console.warn(e);syncBadge("local")}
 }
 // liga a sincronização às gravações que o app já faz
 var RO=!!window.READER;if(RO)document.body.classList.add("ro");
-(function(){const set=ls.set.bind(ls);const map={ba_marks:"marks",ba_plan:"priv",ba_events:"priv",ba_folders:"state",ba_symed:"state",ba_studies:"studies"};
-  ls.set=(k,v)=>{set(k,v);if(map[k])syncQueue(map[k])};
-  const put=dbPut;dbPut=async(k,v)=>{await put(k,v);if(SY.applying)return;if(k==="text")syncQueue("text");else if(k==="aulas")syncQueue("aulas");else if(k==="simbx")syncQueue("simbx");else if(COLS[k])syncQueue(k)}})();
+(function(){const set=ls.set.bind(ls);const map={ba_marks:"marks",ba_plan:"priv",ba_events:"priv",ba_folders:"state",ba_symed:"state",ba_hidest:"state",ba_studies:"studies"};
+  ls.set=(k,v)=>{set(k,v);if(k==="ba_studies"&&SY.db&&!SY.applying&&!RO)delTrack("studies",v);if(map[k])syncQueue(map[k])};
+  const put=dbPut;dbPut=async(k,v)=>{await put(k,v);if(COLS[k]&&SY.db&&!RO){if(!SY.applying)delTrack(k,v);else SY.ids[k]=new Set((v||[]).map(x=>sid(x.id)))}if(SY.applying)return;if(k==="text")syncQueue("text");else if(k==="aulas")syncQueue("aulas");else if(k==="simbx")syncQueue("simbx");else if(COLS[k])syncQueue(k)}})();
 SY.textId=ls.get("ba_textid",null);SY.aulasId=ls.get("ba_aulasid",null);SY.simbxId=ls.get("ba_simbxid",null);
 
 // ---------- Versão para obreiros (HTML somente leitura, com o conteúdo dentro)
@@ -2624,7 +2634,7 @@ function applySeed(){let d={};try{d=JSON.parse(document.getElementById("seed-dat
   S.imp=d.imp||[];S.studies=d.studies||[];S.imgs=d.imgs||[];S.infos=d.infos||[];
   S.prontos=(d.prontos||[]).map(x=>{const{kids,cands}=splitCands(x.html||"");const cuts=x.cuts&&x.cuts.length?x.cuts:defaultCuts(kids,cands);return{...x,cuts,secs:buildSecs(kids,cuts,x.t,!x.cutsEdited)}});
   S.slides=(d.slides||[]).map(x=>typeof x.data==="string"?{...x,data:b642ab(x.data)}:x);
-  ls.set("ba_folders",d.folders||[]);ls.set("ba_symed",d.symEd||{});S.marks={};S.events=[];S.plan={start:null,done:{}};S.seedDate=d.date||"";S.seedBy=d.by||""}
+  ls.set("ba_folders",d.folders||[]);ls.set("ba_symed",d.symEd||{});ls.set("ba_hidest",d.hideEst||[]);S.marks={};S.events=[];S.plan={start:null,done:{}};S.seedDate=d.date||"";S.seedBy=d.by||""}
 async function makeReader(){
   toast("Preparando a atualização do site…",60000);let tpl;
   try{const r=await fetch(new URL("obreiros-modelo.html",document.baseURI));if(!r.ok)throw 0;tpl=await r.text()}catch(e){toast("Não consegui baixar o modelo do arquivo. Verifique a internet e tente de novo.",6000);return}
@@ -2633,7 +2643,7 @@ async function makeReader(){
     imp:S.imp.map(stripSync),studies:S.studies.filter(x=>x.title||x.body).map(stripSync),
     prontos:S.prontos.map(x=>{const{secs,...y}=stripSync(x);return y}),
     slides:S.slides.map(x=>{const y=stripSync(x);if(y.data&&typeof y.data!=="string")y.data=ab2b64(y.data);return y}),
-    imgs:S.imgs.filter(x=>!isT(x)).map(stripSync),infos:S.infos.map(stripSync),folders:ls.get("ba_folders",[]),symEd:ls.get("ba_symed",{})||{}};
+    imgs:S.imgs.filter(x=>!isT(x)).map(stripSync),infos:S.infos.map(stripSync),folders:ls.get("ba_folders",[]),symEd:ls.get("ba_symed",{})||{},hideEst:ls.get("ba_hidest",[])||[]};
   const mark='id="seed-data">'+"__SE"+"ED__";const k=tpl.indexOf(mark);if(k<0){toast("Modelo inválido",4000);return}
   const html=tpl.slice(0,k)+'id="seed-data">'+JSON.stringify(seed).replace(/</g,"\\u003c")+tpl.slice(k+mark.length);
   const blob=new Blob([html],{type:"text/html"});const name=`atualizacao-site-${todayISO()}.html`;$("#toast").hidden=true;
@@ -2814,7 +2824,10 @@ document.addEventListener("click",e=>{
   if(t.id==="prTxt"){editPronto();return}
   if(t.id==="impTxt"){editImp();return}
   if(t.id==="prRen"){const p=curPronto();renameModal("Renomear mensagem",p.t,n=>{p.t=n;saveProntos()});return}
-  if(t.id==="prDel"){const p=curPronto();modal(`<h4>Excluir “${esc(p.t)}”?</h4><p class="empty">O arquivo original não é afetado.</p>`,()=>{S.prontos=S.prontos.filter(x=>x!==p);saveProntos();S.es=null;render()},"Excluir");return}
+  if(t.id==="prDel"){const p=curPronto();modal(`<h4>Excluir “${esc(p.t)}”?</h4><p class="empty">O arquivo original não é afetado.</p>`,()=>{S.prontos=S.prontos.filter(x=>x!==p);saveProntos();
+    const bid=String(p.id).slice(2);if(String(p.id).startsWith("u-")&&ESTUDOS.some(e=>e.id===bid)){const h=ls.get("ba_hidest",[])||[];if(!h.includes(bid))h.push(bid);ls.set("ba_hidest",h)}S.es=null;render()},"Excluir");return}
+  if(t.id==="prHide"){const eid=(S.es||"").split(":")[0];const e=ESTUDOS.find(x=>x.id===eid);if(!e)return;
+    modal(`<h4>Excluir “${esc(e.t)}”?</h4><p class="empty">Ela some da lista em todos os seus aparelhos.</p>`,()=>{const h=ls.get("ba_hidest",[])||[];if(!h.includes(eid))h.push(eid);ls.set("ba_hidest",h);S.es=null;render()},"Excluir");return}
   if(t.id==="impSave"){const x=S.imp.find(i=>i.id===S.curImp);renameModal("Renomear estudo",x.title,n=>{x.title=n;dbPut("imported",S.imp)});return}
   if(t.id==="impDel"){modal(`<h4>Excluir este estudo importado?</h4><p class="empty">O arquivo original no seu computador ou celular não é afetado.</p>`,()=>{S.imp=S.imp.filter(i=>i.id!==S.curImp);S.curImp=null;dbPut("imported",S.imp);render()},"Excluir");return}
   if(d.day!=null&&t.type==="checkbox"){if(t.checked)S.plan.done[+d.day]=1;else delete S.plan.done[+d.day];ls.set("ba_plan",S.plan);setTimeout(render,120);return}

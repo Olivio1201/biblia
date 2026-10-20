@@ -315,6 +315,16 @@ tr.me td{background:var(--accent-soft)}
 .vmk.out{border-color:#B3262E;color:#B3262E}.vmk.out.on{background:#B3262E;color:#fff}.vpart.outp .n{border-color:#B3262E;color:#B3262E}.vchip.fora{color:#B3262E}
 .vmeas{margin-top:10px;border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.vmeas div{display:flex;flex-direction:column}.vmeas .k{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}.vmeas b{font-size:17px}.vmeas .s{font-size:12px;color:var(--muted)}.vmeas p{grid-column:1/-1;margin:0;font-size:12px;color:var(--muted);border-top:1px solid var(--line);padding-top:6px}
 .vverse{margin:0;font-family:var(--f-read,Georgia,serif);font-style:italic}
+.vrefov{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(8,6,4,.62);backdrop-filter:blur(2px)}
+.vrefbox{position:relative;max-width:620px;width:100%;max-height:86vh;overflow:auto;background:radial-gradient(120% 90% at 50% 0%,#241D14 0%,#15120E 70%);color:#EFE6D4;border:1px solid #D9B45A;outline:1px solid rgba(217,180,90,.35);outline-offset:-8px;border-radius:6px;padding:26px 30px 20px;box-shadow:0 30px 80px rgba(0,0,0,.6),inset 0 0 40px rgba(217,180,90,.06)}
+.vrefbox .vc{position:absolute;width:18px;height:18px;border-color:#D9B45A;border-style:solid;border-width:0}
+.vrefbox .vc.tl{top:4px;left:4px;border-top-width:2px;border-left-width:2px}.vrefbox .vc.tr{top:4px;right:4px;border-top-width:2px;border-right-width:2px}
+.vrefbox .vc.bl{bottom:4px;left:4px;border-bottom-width:2px;border-left-width:2px}.vrefbox .vc.br{bottom:4px;right:4px;border-bottom-width:2px;border-right-width:2px}
+.vrefhd{text-align:center;margin-bottom:12px}.vrefhd .eyebrow{color:#D9B45A;font-size:11px;letter-spacing:.16em;text-transform:uppercase}
+.vrefhd h3{margin:4px 0 2px;font:600 28px/1.15 "EB Garamond",Georgia,serif;color:#EFE6D4}.vrefhd .vorn{color:#D9B45A;font-size:11px;letter-spacing:.6em;opacity:.8}
+.vreftx{font:19px/1.6 "EB Garamond",Georgia,serif;color:#EFE6D4;border-top:1px solid #3A3125;border-bottom:1px solid #3A3125;padding:12px 2px;text-align:justify;hyphens:auto}
+.vreftx p{margin:0 0 6px}.vreftx sup{color:#D9B45A;font:700 .6em/1 sans-serif;margin-right:4px;vertical-align:.5em}
+.vrefbar{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.vrefbar .btn{background:#1E1913;color:#EFE6D4;border:1px solid #3A3125}.vrefbar .btn.primary{background:#D9B45A;color:#1A140B;border-color:#D9B45A}
 .vst{display:grid;grid-template-columns:minmax(0,420px) minmax(0,1fr);gap:22px;align-items:start}
 .vframe{position:relative;border:1px solid var(--line);border-radius:8px;overflow:hidden}.vframe img{display:block;width:100%;height:auto;margin:0}
 .vmk{position:absolute;width:28px;height:28px;margin:-14px 0 0 -14px;border-radius:50%;border:2px solid #B8922F;background:rgba(255,255,255,.92);color:#7A5A12;font:700 12px/1 var(--f-ui,sans-serif);display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0;box-shadow:0 1px 4px rgba(0,0,0,.3)}
@@ -327,7 +337,7 @@ tr.me td{background:var(--accent-soft)}
 .vpart .nm{display:flex;flex-direction:column}.vpart small{color:var(--muted);font-size:12px}
 .vchip{font-size:11px;font-weight:600;padding:2px 8px;border-radius:999px;border:1px solid currentColor;white-space:nowrap}.vchip.ok{color:#2E8B3A}.vchip.aprox{color:#C0761B}.vchip.oculto{color:var(--muted)}
 .gallery figure.inter{position:relative}.gallery figure.inter:before{content:"✦ Interativa";position:absolute;top:8px;left:8px;z-index:2;background:#B8922F;color:#fff;font:700 11px/1 var(--f-ui,sans-serif);padding:4px 8px;border-radius:999px;pointer-events:none}
-@media (max-width:760px){.vst{grid-template-columns:minmax(0,1fr)}}
+@media (max-width:760px){.vst,.vst.wide{grid-template-columns:minmax(0,1fr)}.vmeas{grid-template-columns:repeat(3,minmax(0,1fr))}.vmeas b{font-size:15px}}
 .vp-text{font-size:calc(var(--fs) + 1px);max-width:none;padding:6px 2px}
 .vp-text .v{cursor:default}
 .vp-bar{display:flex;gap:6px;flex-wrap:wrap;align-items:center;border-top:1px solid var(--line);padding-top:10px}
@@ -1868,7 +1878,21 @@ function openInter(id,sel){const X=INTERS.find(x=>x.id===id);if(!X)return;CURI=X
     <div class="vparts">${P.map(p=>`<button type="button" class="vpart ${p.s==="oculto"?"under":""} ${p.s==="fora"?"outp":""}" data-vsel="${p.n}"><span class="n">${p.n}</span><span class="nm">${esc(p.t)}<small>${esc(p.r)}</small></span><span class="vchip ${p.s}">${lab(X,p.s)}</span></button>`).join("")}</div>
     <p class="empty" style="font-size:12px;margin:0">${esc(X.note)}</p></div></div>`);
   $("#modal .card").style.width="min(1180px,100%)";$("#modal .card").classList.add("vdark");interSel(sel||X.sel||1);
-  $("#modal").querySelectorAll("[data-vsel]").forEach(b=>b.onclick=e=>{e.stopPropagation();interSel(+b.dataset.vsel)});
+  $("#modal").querySelectorAll("[data-vsel]").forEach(b=>b.onclick=e=>{e.stopPropagation();interSel(+b.dataset.vsel)});$("#modal .card").addEventListener("click",interRef,true);
+}
+function interRef(e){const t=e.target.closest(".ref[data-ref]");if(!t)return;e.preventDefault();e.stopPropagation();
+  const r=parseRef(t.dataset.ref);if(!r||!S.text)return;const v1=r.v||1,n=nVerses(r.b,r.c),v2=Math.min(r.v?Math.max(r.v2||r.v,r.v):n,n);
+  const label=`${B[r.b][1]} ${r.c}${r.v?":"+v1+(v2>v1?"-"+v2:""):""}`;let body="";for(let i=v1;i<=v2;i++)body+=`<p><sup>${i}</sup>${esc(verse(r.b,r.c,i))}</p>`;
+  const ov=document.createElement("div");ov.className="vrefov";
+  ov.innerHTML=`<div class="vrefbox" role="dialog" aria-label="${esc(label)}"><span class="vc tl"></span><span class="vc tr"></span><span class="vc bl"></span><span class="vc br"></span>
+    <div class="vrefhd"><span class="eyebrow">${esc(CURI?CURI.caption:"Referência")}</span><h3>${esc(label)}</h3><span class="vorn">✦ ✦ ✦</span></div>
+    <div class="vreftx">${body}</div>
+    <div class="vrefbar"><button type="button" class="btn small" data-vr="copy">Copiar</button><button type="button" class="btn small" data-vr="open">Abrir na Bíblia</button><span style="flex:1"></span><button type="button" class="btn small primary" data-vr="close">Voltar à imagem</button></div></div>`;
+  const close=()=>{ov.remove();document.removeEventListener("keydown",kd,true)};const kd=ev=>{if(ev.key==="Escape"){ev.stopPropagation();close()}};
+  ov.addEventListener("click",ev=>{ev.stopPropagation();const b=ev.target.closest("[data-vr]");if(ev.target===ov||(b&&b.dataset.vr==="close")){close();return}
+    if(b&&b.dataset.vr==="copy"){const tx=[];for(let i=v1;i<=v2;i++)tx.push((v2>v1?i+" ":"")+verse(r.b,r.c,i));copy(tx.join(" ")+`\n— ${label}`+(typeof copyFoot==="function"?copyFoot():""))}
+    if(b&&b.dataset.vr==="open"){close();go(r.b,r.c,r.v,"read")}});
+  document.addEventListener("keydown",kd,true);$("#modal").appendChild(ov);
 }
 function interSel(n){const X=CURI;const p=CURI&&CURI.parts.find(x=>x.n===n);if(!p)return;
   $("#vDet").innerHTML=`<div class="eyebrow" style="margin:0">Peça ${p.n} · ${lab(X,p.s)}</div><h3>${esc(p.t)}</h3><div class="vtr">${esc(p.tr)}</div><p>${esc(p.d)}</p><div>${refBtn(p.r.split(/[,·]/)[0].replace(/[–—]/g,"-").trim())}${/[,·]/.test(p.r)?`<span class="empty" style="font-size:12px"> · ${esc(p.r)}</span>`:""}</div><p class="vimg">${CURI.imgLabel}: ${esc(p.img)}</p>`;

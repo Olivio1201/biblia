@@ -91,6 +91,8 @@ body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;ba
 .lvs{margin:6px 0 4px;font-family:"Literata",Georgia,serif;font-size:15px;line-height:1.55;color:var(--muted)}.lvs sup{color:var(--accent);font-family:"Figtree",system-ui,sans-serif;font-size:10px;font-weight:700;margin-right:2px}.lvs .lprev{opacity:.6}.lvs .lmore{font-size:12px;font-family:"Figtree",system-ui,sans-serif}.lsub{border:1px solid var(--line);background:var(--paper);color:var(--accent);border-radius:999px;padding:4px 10px;font-size:13px;font-weight:600;cursor:pointer}.lsubh{margin:18px 0 8px;font-size:17px;color:var(--accent);border-bottom:1px solid var(--line);padding-bottom:4px;scroll-margin-top:12px}.lsubh small{color:var(--muted);font-weight:500;font-size:13px}
 .lgrid .lsc{color:var(--accent);font-weight:600}
 .lopen{margin-bottom:14px}.lnota{font-size:13px;color:var(--muted);border-top:1px solid var(--line);padding-top:10px;margin-top:18px}
+.apdoc{display:grid;gap:12px;justify-items:center;margin-top:12px}.apdoc canvas{background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.18);border-radius:2px;max-width:100%}.apdoc article{width:100%}
+body.ro #apAdd,body.ro #apRen,body.ro #apDel{display:none!important}
 .callout{border:1px solid var(--line);background:var(--ribbon-2);border-radius:8px;padding:14px 16px;display:grid;gap:8px;margin-bottom:20px}
 .callout p{margin:0;line-height:1.55;color:var(--muted);max-width:70ch}
 .callout b{color:var(--ink)}
@@ -1116,12 +1118,13 @@ function vPlano(){
 }
 function vEstudos(){
   if(S.stab==="plano")S.stab="prontos";
-  const tabs=[["prontos","Mensagens"],["estudos","Estudos"],["slides","Slides"],["notas","Anotações"],["temas","Temas"]];
+  const tabs=[["prontos","Mensagens"],["estudos","Estudos"],["apostilas","Apostilas"],["slides","Slides"],["notas","Anotações"],["temas","Temas"]];
   let body="";const eq=(S.eq||"").trim();
-  const cnt={prontos:allProntos().length,estudos:S.studies.length+S.imp.length,slides:S.slides.length,notas:Object.keys(S.marks).length,temas:TEMAS.length};
+  const cnt={prontos:allProntos().length,estudos:S.studies.length+S.imp.length,apostilas:S.apos.length,slides:S.slides.length,notas:Object.keys(S.marks).length,temas:TEMAS.length};
   if(eq.length>=2){body=estSearch(eq)}
   else if(S.stab==="prontos"){body=estProntos()}
   else if(S.stab==="slides"){body=vSlides()}
+  else if(S.stab==="apostilas"){body=vApos()}
   else if(S.stab==="estudos"){
     const cur=S.studies.find(x=>x.id===S.cur);const ci=S.curImp!=null?S.imp.find(x=>x.id===S.curImp):null;
     const sq=norm(S.stq||"");
@@ -1159,7 +1162,7 @@ function vEstudos(){
   }else if(S.stab==="temas"){
     body=`<p class="empty">Doutrinas centrais da tradição pentecostal e as passagens de apoio.</p>`+TEMAS.map(([t,refs])=>`<div class="note-item"><b>${t}</b><div>${refs.map(r=>{const p=parseRef(r);const tx=p?refText(p):"";return`<div style="margin:4px 0">${refBtn(r)}${tx?` <span class="empty" style="font-family:var(--f-read)">${esc(tx.length>200?tx.slice(0,200)+"…":tx)}</span>`:""}</div>`}).join("")}</div></div>`).join("");
   }
-  return `<h1 class="h">Estudos e Mensagens</h1><p class="sub">Mensagens, estudos, slides para projeção, anotações e temas</p>
+  return `<h1 class="h">Estudos e Mensagens</h1><p class="sub">Mensagens, estudos, apostilas, slides para projeção, anotações e temas</p>
   <div class="esearch"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5" fill="none" stroke="currentColor" stroke-width="2"/><path d="M13 13l4.5 4.5" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><input id="eq" class="qin" type="text" enterkeyhint="search" value="${esc(S.eq||"")}" placeholder="Buscar em estudos, mensagens, slides e anotações…" autocomplete="off">${S.eq?`<button class="btn small" id="eqX" aria-label="Limpar busca">✕</button>`:""}</div>
   <div class="subtabs">${tabs.map(([k,l])=>`<button data-stab="${k}" class="${S.stab===k&&eq.length<2?"on":""}">${l}<span class="tcount">${cnt[k]}</span></button>`).join("")}</div><div class="estf">${body}</div>`;
 }
@@ -2357,6 +2360,7 @@ async function importStudies(files){if(RO)return;
     <p class="empty" style="margin:0">${ok.map(f=>esc(f.name)).join(" · ")}</p>
     ${opt("pronto","Mensagem","Dividido em partes pelos títulos do documento, com lista de navegação e fotos.",false,allPpt)}
     ${opt("meu","Estudo","Fica em Estudos, como o arquivo veio.",!allPpt,allPpt)}
+    ${opt("apostila","Apostila","Material para ler e baixar, como veio. Aceita PDF e Word (.docx).",false,allPpt)}
     ${opt("slides","Slides","Para projeção em tela cheia. Aceita PDF e PowerPoint (.pptx).",allPpt,false)}
     ${anyPpt&&!allPpt?`<p class="empty" style="font-size:12px;margin:0">Arquivos PowerPoint só podem ir para Slides.</p>`:""}
     <div id="prFolder" hidden><label class="empty" style="font-size:13px">Pasta de fotos ligada ao estudo</label>${folderSelect("prFolderSel","")}</div>`,
@@ -2364,6 +2368,7 @@ async function importStudies(files){if(RO)return;
   document.querySelectorAll('input[name="kind"]').forEach(r=>r.onchange=()=>{$("#prFolder").hidden=document.querySelector('input[name="kind"]:checked').value!=="pronto"});
 }
 async function processImport(files,kind,folder){
+  if(kind==="apostila")return addApos(files);
   const done=[];
   for(const f of files){const ext=extOf(f.name);
     try{toast(`Lendo ${f.name}…`,60000);const buf=await f.arrayBuffer();const base={id:Date.now()+Math.random(),title:titleOf(f.name),date:todayISO(),src:f.name};
@@ -2394,6 +2399,7 @@ function snips(text,nq,max=2){const nt=norm(text);const out=[];let i=nt.indexOf(
 function estSearch(q){const nq=norm(q);const R=[];
   const add=(grp,title,sub,attr,text)=>{const tt=norm(title).includes(nq);const r=snips(text||"",nq);if(!tt&&!r.n)return;R.push({grp,title,sub,attr,n:r.n+(tt?1:0),out:r.out,tt})};
   allProntos().forEach(e=>e.secs.forEach((sec,k)=>add("Mensagens",sec.t,e.t+" · parte "+(k+1),`data-sr="pr" data-id="${esc(e.id)}" data-k="${k}"`,(k===0?e.t+" — ":"")+plain(sec.h||""))));
+  S.apos.forEach(x=>add("Apostilas",x.title,(x.type==="pdf"?"PDF":"Word")+" · "+fmtDate(x.date),`data-apo="${x.id}"`,x._html?plain(x._html):""));
   S.imp.forEach(x=>add("Estudos",x.title,"Importado · "+fmtDate(x.date),`data-sr="imp" data-id="${x.id}"`,plain(x.html||"")));
   S.studies.forEach(x=>add("Estudos",x.title||"Sem título",(x.kind||"Estudo")+" · "+fmtDate(x.date)+(x.ref?" · "+x.ref:""),`data-sr="st" data-id="${esc(String(x.id))}"`,(x.ref||"")+" "+(x.body||"")));
   S.slides.forEach(x=>add("Slides",x.title,(x.type==="pdf"?"PDF":"PowerPoint")+" · "+(x.type==="pdf"?x.n:x.sd.pages.length)+" slides",`data-sr="sl" data-id="${x.id}"`,x.type==="pdf"?"":x.sd.pages.map(pg=>plain(pg.html||"")).join(" · ")));
@@ -2516,6 +2522,7 @@ function curPronto(){const id=(S.es||"").split(":")[0];return S.prontos.find(p=>
 
 // ---------- Slides para projeção (PDF e PowerPoint .pptx)
 S.slides=[];
+S.apos=[];
 const EMU=12700;
 const A_NS="http://schemas.openxmlformats.org/drawingml/2006/main",P_NS="http://schemas.openxmlformats.org/presentationml/2006/main",R_NS="http://schemas.openxmlformats.org/officeDocument/2006/relationships";
 const qa=(el,ns,name)=>el?[...el.getElementsByTagNameNS(ns,name)]:[];
@@ -2598,6 +2605,45 @@ async function pdfToSlide(buf,name){const pdfjs=await loadPdfjs();const pdf=awai
   const page=await pdf.getPage(1);const v=page.getViewport({scale:1});const c=document.createElement("canvas");const sc=360/v.width;const vp=page.getViewport({scale:sc});c.width=vp.width;c.height=vp.height;
   await page.render({canvasContext:c.getContext("2d"),viewport:vp}).promise;return{n:pdf.numPages,thumb:c.toDataURL("image/jpeg",.7),ratio:v.width/v.height}}
 async function saveSlides(){await dbPut("slides",S.slides.map(({_pdf,...x})=>x))}
+// ---------- Apostilas (PDF e Word para ler e baixar)
+function apoMime(x){return x.type==="pdf"?"application/pdf":"application/vnd.openxmlformats-officedocument.wordprocessingml.document"}
+const apoOut=x=>{const{_html,...y}=stripSync(x);if(y.data&&typeof y.data!=="string")y.data=ab2b64(y.data);return y};
+async function saveApos(){await dbPut("apostilas",S.apos.map(({_pdf,_html,...x})=>x))}
+async function saveBlob(blob,name){const dl=window.claude&&window.claude.use?await window.claude.use("downloads").catch(()=>null):null;
+  if(dl){try{await dl.save({filename:name,data:blob});toast("Arquivo salvo: "+name,5000)}catch(e){if(e&&e.code!=="declined")toast("Não consegui salvar o arquivo ("+(e.code||"erro")+")")}return}
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},4000);toast("Arquivo salvo em Downloads: "+name,5000)}
+async function addApos(files){if(RO)return;const done=[];
+  for(const f of files){const ext=extOf(f.name);
+    if(!["pdf","docx"].includes(ext)){toast(`${f.name}: use PDF ou Word (.docx)`+(ext==="doc"?". No Word, use “Salvar como” .docx":""),6000);await new Promise(r=>setTimeout(r,2200));continue}
+    try{toast(`Lendo ${f.name}…`,60000);const buf=await f.arrayBuffer();const x={id:Date.now()+Math.random(),title:titleOf(f.name),date:todayISO(),src:f.name,type:ext,data:buf,n:0};
+      if(ext==="pdf"){const pdfjs=await loadPdfjs();const pdf=await pdfjs.getDocument({data:new Uint8Array(buf.slice(0))}).promise;x.n=pdf.numPages}
+      else x._html=await docxToHtml(buf.slice(0));
+      done.push(x)}catch(e){toast(`${f.name}: ${e.message}`,6000);await new Promise(r=>setTimeout(r,2400))}}
+  $("#toast").hidden=true;if(!done.length)return;
+  S.apos.push(...done);await saveApos();S.apoCur=done[done.length-1].id;S.stab="apostilas";S.view="estudos";S.eq="";render();window.scrollTo(0,0);
+  toast(done.length===1?"Apostila adicionada":`${done.length} apostilas adicionadas`)}
+function vApos(){const sq=norm(S.apq||"");
+  const L=S.apos.filter(x=>!sq||norm(x.title+" "+(x.src||"")).includes(sq)).sort((a,b)=>ABC.compare(a.title||"",b.title||""));
+  const cur=S.apos.find(x=>x.id===S.apoCur)||null;
+  const info=x=>x.type==="pdf"?`PDF · ${x.n} página${x.n>1?"s":""}`:"Word";
+  const left=`<div>${RO?"":`<button class="btn primary" id="apAdd" style="width:100%;margin-bottom:8px">+ Adicionar apostila (PDF ou Word)</button>`}
+    ${S.apos.length>5?`<input id="apq" class="qin" style="width:100%;margin-bottom:6px" value="${esc(S.apq||"")}" placeholder="Buscar apostila…">`:""}
+    <div class="list">${L.length?L.map(x=>`<button data-apo="${x.id}" class="${cur&&x.id===cur.id?"on":""}"><b>${esc(x.title)}</b><small>${info(x)} · ${fmtDate(x.date)}</small></button>`).join("")
+      :`<p class="empty" style="font-size:13px">${sq?"Nenhuma apostila encontrada.":RO?"Nenhuma apostila ainda.":"Nenhuma apostila ainda. Adicione seus materiais de curso em PDF ou Word."}</p>`}</div></div>`;
+  const right=cur?`<h2 class="sh" style="margin:0">${esc(cur.title)}</h2>
+    <div class="row" style="gap:6px;flex-wrap:wrap;align-items:center"><span class="empty" style="font-size:12px;flex:1;min-width:160px">${info(cur)} · ${esc(cur.src||"")} · ${fmtDate(cur.date)}</span>
+    <button class="btn small primary" id="apDl">⤓ Baixar</button>${RO?"":`<button class="btn small" id="apRen">✎ Renomear</button><button class="btn small" id="apDel">Excluir</button>`}</div>
+    <div class="apdoc" id="apDoc">${cur.type==="pdf"?(cur.data?Array.from({length:cur.n},(_,i)=>`<canvas data-appage="${i+1}" aria-label="Página ${i+1}"></canvas>`).join(""):`<p class="empty">Baixando a apostila…</p>`):cur._html?`<article class="doc aula">${cur._html}</article>`:`<p class="empty">Abrindo…</p>`}</div>`
+    :`<div class="callout" style="margin:0"><p><b>Apostilas</b> guarda materiais de curso e de estudo em <b>PDF</b> ou <b>Word (.docx)</b>, para ler aqui e baixar quando precisar.</p><p>${L.length?"Escolha uma apostila na lista.":RO?"":"Use <b>+ Adicionar apostila</b> para incluir a primeira."}</p></div>`;
+  return `<div class="split">${left}<div class="editor">${right}</div></div>`}
+let _apoIO=null;
+async function apoDraw(){const cur=S.apos.find(x=>x.id===S.apoCur);const box=$("#apDoc");if(!cur||!box||!cur.data)return;
+  if(cur.type!=="pdf"){if(!cur._html){try{cur._html=await docxToHtml(cur.data.slice(0))}catch(e){cur._html=`<p class="empty">Não consegui abrir este Word (${esc(e.message)}). Use “Baixar” para abrir no Word.</p>`}
+    const d=$("#apDoc");if(d&&S.apoCur===cur.id)d.innerHTML=`<article class="doc aula">${cur._html}</article>`}return}
+  const w=Math.max(240,Math.min(box.clientWidth-4,900));if(_apoIO)_apoIO.disconnect();
+  const cs=[...box.querySelectorAll("canvas[data-appage]")];cs.forEach(c=>{c.style.width=w+"px";c.style.height=Math.round(w*1.414)+"px"});
+  _apoIO=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;_apoIO.unobserve(e.target);pdfRender(cur,+e.target.dataset.appage,e.target,w,w*4).catch(()=>{})}),{rootMargin:"800px 0px"});
+  cs.forEach(c=>_apoIO.observe(c))}
 function vSlides(){
   const L=S.slides;
   if(!L.length)return `<div class="callout"><p><b>Slides</b> guarda suas apresentações para projetar nos cultos e estudos.</p><p>Use <b>Importar Word / PDF / PowerPoint</b> em Estudos e escolha <b>Slides</b>. Aceita <b>PDF</b> e <b>PowerPoint (.pptx)</b>.</p><p>Para o PowerPoint ficar idêntico ao original, o melhor é exportar como PDF no próprio PowerPoint (Arquivo → Salvar como → PDF). O .pptx é mostrado de forma aproximada: textos, imagens e cores; animações, efeitos e fontes especiais não aparecem.</p></div>`;
@@ -2651,6 +2697,9 @@ const COLS={
   slides:{get:()=>S.slides,set:v=>S.slides=v,idb:"slides",meta:x=>({id:x.id,title:x.title,type:x.type,src:x.src,date:x.date,n:x.n||0,ratio:x.ratio||0}),
     content:x=>x.type==="pdf"?new Blob([x.data],{type:"application/pdf"}):new Blob([JSON.stringify({sd:x.sd})],{type:"application/json"}),
     restore:async(d,r)=>d.type==="pdf"?{...d,data:await r.arrayBuffer()}:{...d,sd:(await r.json()).sd}},
+  apostilas:{get:()=>S.apos,set:v=>S.apos=v,idb:"apostilas",meta:x=>({id:x.id,title:x.title,type:x.type,src:x.src,date:x.date,n:x.n||0}),
+    content:x=>new Blob([x.data],{type:apoMime(x)}),
+    restore:async(d,r)=>({...d,data:await r.arrayBuffer()})},
   infos:{get:()=>S.infos,set:v=>S.infos=v,idb:"infos",meta:x=>({id:x.id,kind:x.kind||"info",title:x.title||"",cat:x.cat||"",book:x.book??-1,ref:x.ref||"",date:x.date||"",ord:x.ord??0}),
     content:x=>dataUrlBlob(x.data),
     restore:async(d,r)=>{const b=await r.blob();return{...d,data:await new Promise(ok=>{const fr=new FileReader();fr.onload=()=>ok(fr.result);fr.readAsDataURL(b)})}}},
@@ -2759,6 +2808,7 @@ function applySeed(){let d={};try{d=JSON.parse(document.getElementById("seed-dat
   S.imp=d.imp||[];S.studies=d.studies||[];S.imgs=d.imgs||[];S.infos=d.infos||[];
   S.prontos=(d.prontos||[]).map(x=>{const{kids,cands}=splitCands(x.html||"");const cuts=x.cuts&&x.cuts.length?x.cuts:defaultCuts(kids,cands);return{...x,cuts,secs:buildSecs(kids,cuts,x.t,!x.cutsEdited)}});
   S.slides=(d.slides||[]).map(x=>typeof x.data==="string"?{...x,data:b642ab(x.data)}:x);
+  S.apos=(d.apos||[]).map(x=>typeof x.data==="string"?{...x,data:b642ab(x.data)}:x);
   ls.set("ba_folders",d.folders||[]);ls.set("ba_symed",d.symEd||{});ls.set("ba_hidest",d.hideEst||[]);S.marks={};S.events=[];S.plan={start:null,done:{}};S.seedDate=d.date||"";S.seedBy=d.by||""}
 async function makeReader(){
   toast("Preparando a atualização do site…",60000);let tpl;
@@ -2767,7 +2817,7 @@ async function makeReader(){
   const seed={date:todayISO(),est:S.prontos.some(isU),tab:S.imgs.some(isT),
     imp:S.imp.map(stripSync),studies:S.studies.filter(x=>x.title||x.body).map(stripSync),
     prontos:S.prontos.map(x=>{const{secs,...y}=stripSync(x);return y}),
-    slides:S.slides.map(x=>{const y=stripSync(x);if(y.data&&typeof y.data!=="string")y.data=ab2b64(y.data);return y}),
+    slides:S.slides.map(x=>{const y=stripSync(x);if(y.data&&typeof y.data!=="string")y.data=ab2b64(y.data);return y}),apos:S.apos.map(apoOut),
     imgs:S.imgs.filter(x=>!isT(x)).map(stripSync),infos:S.infos.map(stripSync),folders:ls.get("ba_folders",[]),symEd:ls.get("ba_symed",{})||{},hideEst:ls.get("ba_hidest",[])||[]};
   const mark='id="seed-data">'+"__SE"+"ED__";const k=tpl.indexOf(mark);if(k<0){toast("Modelo inválido",4000);return}
   const html=tpl.slice(0,k)+'id="seed-data">'+JSON.stringify(seed).replace(/</g,"\\u003c")+tpl.slice(k+mark.length);
@@ -2783,7 +2833,7 @@ const stripSync=x=>{const{_a,_pdf,_s,thumb,...y}=x;return y};
 async function exportAll(){
   toast("Preparando o arquivo…",60000);await new Promise(r=>setTimeout(r,50));
   const out={app:"biblia-estudo",v:1,date:todayISO(),marks:S.marks,plan:S.plan,events:S.events,studies:S.studies.map(stripSync),folders:ls.get("ba_folders",[]),
-    imp:S.imp.map(stripSync),prontos:S.prontos.map(stripSync),slides:S.slides.map(x=>{const y=stripSync(x);if(y.data)y.data=ab2b64(y.data);return y}),imgs:S.imgs.map(stripSync),infos:S.infos.map(stripSync),
+    imp:S.imp.map(stripSync),prontos:S.prontos.map(stripSync),slides:S.slides.map(x=>{const y=stripSync(x);if(y.data)y.data=ab2b64(y.data);return y}),apos:S.apos.map(apoOut),imgs:S.imgs.map(stripSync),infos:S.infos.map(stripSync),
     text:S.text||null,textName:S.custom?(S.textName||"texto.json"):"biblia-almeida.json",aulas:AULAS&&AULAS.length?AULAS:null,simbx:SIMBX||null};
   // conteúdo que já vem dentro desta cópia do app
   (window.ESTUDOS||[]).forEach(e=>out.prontos.push({id:"u-"+e.id,t:e.t,folder:e.folder||"",src:"Estudo pronto do app",date:todayISO(),user:true,cutsEdited:true,markers:true,
@@ -2812,6 +2862,7 @@ async function importAll(f){if(RO)return;
     else if(!x.cuts)x.cuts=defaultCuts(kids,cands);
     x.secs=buildSecs(kids,x.cuts,x.t,!x.cutsEdited);S.prontos.push(x);cnt.p=(cnt.p||0)+1});
   (d.slides||[]).forEach(x=>{if(has(S.slides,x.id))return;if(typeof x.data==="string")x.data=b642ab(x.data);S.slides.push(x);cnt.sl=(cnt.sl||0)+1});
+  (d.apos||[]).forEach(x=>{if(has(S.apos,x.id))return;if(typeof x.data==="string")x.data=b642ab(x.data);S.apos.push(x);cnt.ap=(cnt.ap||0)+1});await saveApos();
   (d.imgs||[]).forEach(x=>{if(!has(S.imgs,x.id)){S.imgs.push(x);cnt.f=(cnt.f||0)+1}});
   (d.infos||[]).forEach(x=>{if(!has(S.infos,x.id)){S.infos.push(x);cnt.f=(cnt.f||0)+1}});await dbPut("infos",S.infos);
   await dbPut("imported",S.imp);await saveProntos();await saveSlides();await dbPut("imgs",S.imgs);
@@ -2839,6 +2890,7 @@ function render(){setTimeout(()=>syncBadge(SY.state),0);if(RO&&["agenda","plano"
   if(S.view==="pers"&&$(".pdoc"))linkRefs($(".pdoc"));
   if(S.view==="leis"&&$("#lq")){const q=$("#lq");const go=()=>{S.lq=q.value;S.lg=null;const pos=q.value.length;render();const n=$("#lq");if(n){n.focus();n.setSelectionRange(pos,pos)}};let t;q.oninput=()=>{clearTimeout(t);t=setTimeout(go,350)};q.onkeydown=e=>{if(e.key==="Enter"){clearTimeout(t);go()}};$("#lqGo").onclick=go}
   if(S.view==="pers"&&$("#pq")){const q=$("#pq");q.oninput=()=>{S.pq=q.value;const r=persList(S.pq);$("#plist").innerHTML=r?(r.length?r.slice(0,200).map(persItem).join(""):`<p class="empty">Nenhum personagem encontrado.</p>`):PERS.filter(e=>pnorm(e[0])[0]===(S.pl||"A").toLowerCase()).map(persItem).join("");$("#plab").textContent=r?r.length+" resultado(s)":"Letra "+(S.pl||"A")};if(S.pq){q.focus();q.setSelectionRange(q.value.length,q.value.length)}}
+  if(S.view==="estudos"&&S.stab==="apostilas"&&!(S.eq||"").trim()){apoDraw();const aq=$("#apq");if(aq){aq.oninput=e=>{S.apq=e.target.value;clearTimeout(window._apt);window._apt=setTimeout(()=>{render();const i=$("#apq");if(i){i.focus();i.setSelectionRange(i.value.length,i.value.length)}},300)}}}
   if(S.view==="search"){$("#smode").value=S.search.mode;$("#sscope").value=S.search.scope}
   renderStrip();renderBar();
 }
@@ -2882,6 +2934,11 @@ document.addEventListener("click",e=>{
   const t=e.target.closest("button,[data-v],input,img");if(!t)return;const d=t.dataset;
   if(d.ref){e.preventDefault();if(!["read","refs","search","plano","home"].includes(S.view)){const pr=parseRef(d.ref);if(pr&&pr.v&&S.text){versePopup(pr.b,pr.c,pr.v,pr.v2);return}}goRef(d.ref,S.view==="refs"?"refs":"read");return}
   if(d.lsub!=null){const el=document.getElementById("lsub"+d.lsub);if(el)el.scrollIntoView({behavior:"smooth",block:"start"});return}
+  if(d.apo!=null){const x=S.apos.find(i=>String(i.id)===d.apo);if(x){S.apoCur=x.id;S.stab="apostilas";S.eq="";S.view="estudos"}render();return}
+  if(t.id==="apAdd"){const i=document.createElement("input");i.type="file";i.accept=".pdf,.docx,application/pdf";i.multiple=true;i.onchange=()=>addApos([...i.files]);i.click();return}
+  if(t.id==="apDl"){const x=S.apos.find(i=>i.id===S.apoCur);if(x&&x.data)saveBlob(new Blob([x.data],{type:apoMime(x)}),x.src||(x.title+"."+x.type));return}
+  if(t.id==="apRen"){const x=S.apos.find(i=>i.id===S.apoCur);if(x)renameModal("Renomear apostila",x.title,n=>{x.title=n;saveApos()});return}
+  if(t.id==="apDel"){const x=S.apos.find(i=>i.id===S.apoCur);if(x)modal(`<h4>Excluir “${esc(x.title)}”?</h4><p class="empty">A apostila sai do app em todos os aparelhos sincronizados. O arquivo original no seu computador não é afetado.</p>`,()=>{S.apos=S.apos.filter(i=>i!==x);S.apoCur=null;saveApos();render()},"Excluir");return}
   if(d.lclr!=null){S.lq="";S.lg=null;S.lf="";render();window.scrollTo(0,0);$("#view").scrollTop=0;return}
   if(d.lf!=null){S.lf=d.lf;render();return}
   if(d.lg!=null){S.view="leis";S.lf="";S.lg=d.lg===""?null:+d.lg;render();window.scrollTo(0,0);$("#view").scrollTop=0;return}
@@ -3053,7 +3110,7 @@ $("#sheet").addEventListener("click",e=>{if(e.target.id==="sheet")$("#sheet").hi
 try{window.matchMedia("(max-width:760px)").addEventListener("change",()=>render())}catch(e){}
 try{S.text=S.orig=parseBible(document.getElementById('biblia-data').textContent,'b.json')}catch(e){console.error(e)}
 renderNav();render();
-Promise.all([dbGet("text"),dbGet("imgs"),dbGet("imported"),dbGet("prontos"),dbGet("slides"),dbGet("aulas"),dbGet("simbx"),dbGet("infos")]).then(([t,im,ii,pp,sl,aa,sx,inf])=>{if(window.READER){applySeed();render();renderNav();return}if(inf)S.infos=inf;if(sx&&sx.length&&!window.SIMBX){SIMBX=sx;S.simbx=sx;_sg=null}if(ii)S.imp=ii;if(pp)S.prontos=pp;if(sl)S.slides=sl;if(aa&&aa.length){S.aulas=aa;AULAS=aa}setTimeout(initSync,0);if(t){S.text=t;S.custom=true;S.index=null}if(im)S.imgs=im;render();renderNav()});
+Promise.all([dbGet("text"),dbGet("imgs"),dbGet("imported"),dbGet("prontos"),dbGet("slides"),dbGet("aulas"),dbGet("simbx"),dbGet("infos"),dbGet("apostilas")]).then(([t,im,ii,pp,sl,aa,sx,inf,ap])=>{if(window.READER){applySeed();render();renderNav();return}if(inf)S.infos=inf;if(ap)S.apos=ap;if(sx&&sx.length&&!window.SIMBX){SIMBX=sx;S.simbx=sx;_sg=null}if(ii)S.imp=ii;if(pp)S.prontos=pp;if(sl)S.slides=sl;if(aa&&aa.length){S.aulas=aa;AULAS=aa}setTimeout(initSync,0);if(t){S.text=t;S.custom=true;S.index=null}if(im)S.imgs=im;render();renderNav()});
 </script>
 <script>
 document.addEventListener("click",function(e){const b=e.target.closest(".site-vod[data-ref]");if(!b||typeof goRef!=="function")return;e.stopPropagation();const r=typeof parseRef==="function"?parseRef(b.dataset.ref):null;if(r&&typeof versePopup==="function")versePopup(r.b,r.c,r.v);else goRef(b.dataset.ref)},true);
